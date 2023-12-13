@@ -1,0 +1,26 @@
+   
+---
+title: "Trains"
+---
+
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(leaflet)
+traj_train = readRDS('trajets_train.RDS')
+positions = select(traj_train, long=4, lat =3) %>%
+  bind_rows(select(traj_train, long=6, lat =5) ) %>%
+  distinct()
+  
+
+leaflet() %>%
+  # addProviderTiles(providers$CartoDB.VoyagerOnlyLabels,
+  #                  options = providerTileOptions(opacity = 0.35)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap) %>%
+  addCircleMarkers(data = positions, lng = ~long, lat = ~lat, 
+                   radius =7, fillOpacity = 1,
+                   weight = 2,opacity = 0.1, color = "darkred") %>%
+  addPolylines(data = traj_train$routes$geometry, color = "red", weight = 3, opacity = 1)
+
+```
+

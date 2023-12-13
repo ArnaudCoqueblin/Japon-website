@@ -1,0 +1,45 @@
+---
+title: "Planning"
+---
+
+```{r,  echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(timevis)
+
+df_cal = tribble(
+  ~calendarId , ~title, ~start,  ~category,
+  1 , "Laventinois", dmy("26062024"),  "allday",
+  2 , "Belges", dmy("28062024"),  "allday",
+  3 , "Rouennais", dmy("26062024"),  "allday"
+) %>%
+  mutate(end = start + days(16)) 
+
+trajets = tibble(ville = c("TOKYO","NAGOYA","OSAKA / KYOTO / NARA / KOBE","HIROSHIMA","TOKYO"),
+                 durée = c(3,2,6,2,2))
+
+for (i in 1:nrow(trajets)) {
+  df_cal =  bind_rows(
+    df_cal,
+    tibble(calendarId = max(df_cal$calendarId) + 1, title = trajets$ville[i],
+           start = case_when(i == 1 ~ min(df_cal$start) + days(1), 
+                             TRUE ~ last(df_cal$end)  ) , 
+           end = case_when(i == 1 ~ min(df_cal$start) + days(1 + trajets$durée[i]) , 
+                           TRUE ~ start + days(trajets$durée[i]) ) ,
+           category = "allday", backgroundColor = "#5E81AC", color = "white")
+  )
+}
+
+# ajoute la date de retour
+df_cal = bind_rows(df_cal,
+                    df_cal %>% filter(! title %in% trajets$ville) %>% group_by(title) %>%
+                      mutate( title = paste("RETOUR -",title), start = min(start) + days(16) + hours(12) , end = NA)   )  %>%
+    select(content = title, start, end) %>%
+    mutate(group = ifelse(content %in% trajets$ville, "vis", "vac"),
+           # type = c( rep("range",3 + nrow(trajets)) , rep("point",3) ),
+           style = c( rep("background-color: #FF7256; color: white; border: 1px solid #dddddd;", 3),
+                      rep("background-color: #DEB887; color: white; border: 1px solid #dddddd;", nrow(trajets)),
+                      rep("background-color: white; color: #FFA07A; border: 1px solid #dddddd;", 3) ) )
+
+timevis(df_cal, groups = tibble(id = c("vac", "vis"), content = c("Vacances","Visites")))
+            
+```

@@ -1,0 +1,43 @@
+---
+title: "Avions"
+---
+
+-   Vols directs : Paris - Tokyo
+
+    -   plus chers (1100€ - 1300€)
+
+    -   via la route Sud, sous la Mer Noire, puis Turquie et plein Est
+
+    -   ou la route Nord, via le Groënland, selon les conditions météo
+
+-   Avec escale :
+
+    -   moins chers (800€ - 900€)
+
+    -   stop à Pékin, Taipei ou Hong-Kong
+
+    -   les avions chinois survolent la Russie
+
+NB : Les trajets ci-dessous sont juste des représentations.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(leaflet)
+aeroports = readRDS('./data/aeroports.RDS')
+routes_avion = readRDS('./data/routes_avion.RDS')
+
+coeff = 0.5
+bbox =  c( rbind(
+    range(aeroports$lon) %>% scales::expand_range(mul = coeff),
+    range(aeroports$lat) %>% scales::expand_range(mul = coeff) 
+   ) )
+  
+leaflet() %>%
+  addProviderTiles(providers$Esri.WorldTopoMap) %>%
+  addCircleMarkers(data = aeroports, lng = ~lon, lat = ~lat, 
+                   label = ~vil, labelOptions = labelOptions(noHide = T, direction = "top"),
+                   radius =5, fillOpacity = 0.5,
+                   weight = 2,opacity = 0.1, color = "black") %>%
+  addPolylines(data = routes_avion, color = "darkred", weight = 2) %>%
+  fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
+```
